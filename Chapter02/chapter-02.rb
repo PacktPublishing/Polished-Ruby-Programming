@@ -167,7 +167,8 @@ class OpenClosed
 
     else
       alias_name = :"__#{method}"
-      if private_method_defined?(alias_name) || method_defined?(alias_name)
+      if private_method_defined?(alias_name) ||
+             method_defined?(alias_name)
         check_method = false
         alias_method method, alias_name
         check_method = true
@@ -280,7 +281,8 @@ end
 
 class CurrentDay
   def initialize(date: Date.today,
-                 schedule: MonthlySchedule.new(date.year, date.month))
+                 schedule: MonthlySchedule.new(date.year,
+                                               date.month))
     @date = date
     @schedule = schedule
   end
@@ -289,7 +291,8 @@ end
 # --
 
 class CurrentDay
-  def initialize(date: Date.today, schedule_class: MonthlySchedule)
+  def initialize(date: Date.today,
+                 schedule_class: MonthlySchedule)
     @date = date
     @schedule = schedule_class.new(date.year, date.month)
   end
