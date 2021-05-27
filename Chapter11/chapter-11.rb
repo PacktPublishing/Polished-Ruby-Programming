@@ -1,376 +1,221 @@
-### Handling Change
+### Testing to Ensure Your Code Works
 
-## Implementing the most common Ruby refactoring techniques
+## Understanding why testing is so critical in Ruby
 
-class Database
-  def insert(*args)
-    conn = checkout_connection
-    conn.execute(insert_sql(*args))
-  ensure
-    checkin_connection(conn) if conn
-  end
+Dir['/path/to/dir/**/*.rb'].each do |file|
+  print file, ': '
+  system('ruby', '-c', '--disable-gems', file)
+end
 
 # --
 
-  def update(*args)
-    conn = checkout_connection
-    conn.execute(update_sql(*args))
-  ensure
-    checkin_connection(conn) if conn
-  end
-
-  def delete(*args)
-    conn = checkout_connection
-    conn.execute(delete_sql(*args))
-  ensure
-    checkin_connection(conn) if conn
+Dir['/path/to/dir/**/*.rb'].each do |file|
+  read, write = IO.pipe
+  print '.'
+  system('ruby', '-c', '--disable-gems', file,
+         out: write, err: write)
+  write.close
+  output = read.read
+  unless output.chomp == "Syntax OK"
+    puts
+    puts output
   end
 end
 
 # --
 
-class Database
-  private def checkout
-    conn = checkout_connection
-    yield conn
-  ensure
-    checkin_connection(conn) if conn
+Dir['/path/to/dir/**/*.rb'].each do |file|
+  read, write = IO.pipe
+  print '.'
+  system('ruby', '-wc', '--disable-gems', file,
+         out: write, err: write)
+  write.close
+  output = read.read
+  unless output.chomp == "Syntax OK"
+    puts
+    puts output.sub(/Syntax OK\Z/, '')
+  end
+end
+
+## Learning different approaches to testing
+
+bdd_specification = <<END
+Feature: Check whether program finishes
+
+  Scenario: User submits program
+    Given the User submits a program with a "loop"
+    When the User clicks a button to check
+        whether the program will finish
+    Then the system outputs whether the program will finish
+END
+
+# --
+
+module WhichFaster
+  def faster_one(callable1, callable2)
+    t1 = time{callable1.call}
+    t2 = time{callable2.call}
+    t1 > t2 ? callable2 : callable1
+  end
+  private def time
+    t = clock_time
+    yield
+    clock_time - t
+  end
+  private def clock_time
+    Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  end
+  extend self
+end
+
+# --
+
+describe WhichFaster do
+  it "returns faster callable" do
+    which = WhichFaster.new
+    c1 = which.callable1 = ->{a}
+    c2 = which.callable2 = ->{b}
+
+    which.timer = {c1=>1, c2=>2}
+    _(which.faster_one).must_equal c1
+
+    which.timer = {c1=>2, c2=>1}
+    _(which.faster_one).must_equal c2
+  end
+end
+
+# --
+
+class WhichFaster
+  attr_accessor :callable1, :callable2, :timer
+
+  def faster_one
+    t1 = timer[callable1]
+    t2 = timer[callable2]
+    t1 > t2 ? callable2 : callable1
+  end
+end
+
+# --
+
+which = WhichFaster.new
+which.callable1 = callable1
+which.callable2 = callable2
+which.timer = ->(callable) do
+  t = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  callable.call
+  Process.clock_gettime(Process::CLOCK_MONOTONIC) - t
+end
+which.faster_one
+
+## Considering test complexity
+
+describe Foo do
+  it "should have bar return a Bar instance" do
+    Foo.new.bar.must_be_kind_of(Bar)
+  end
+
+  it "should have baz return a Baz instance" do
+    Foo.new.baz.must_be_kind_of(Baz)
+  end
+
+  it "should have quux return a Quux instance" do
+    Foo.new.quux.must_be_kind_of(Quux)
+  end
+end
+
+# --
+
+describe Foo do
+  def method_must_return_kind_of(meth, instance)
+    Foo.new.send(meth).must_be_kind_of(instance)
   end
 
 # --
 
-  def insert(*args)
-    checkout do |conn|
-      conn.execute(insert_sql(*args))
+  it "should have bar return a Bar instance" do
+    method_must_return_kind_of(:bar, Bar)
+  end
+
+  it "should have baz return a Baz instance" do
+    method_must_return_kind_of(:baz, Baz)
+  end
+
+  it "should have quux return a Quux instance" do
+    method_must_return_kind_of(:quux, Quux)
+  end
+end
+
+# --
+
+describe Foo do
+  {bar: Bar, baz: Baz, quux: Quux}.each do |meth, klass|
+    it "should have #{meth} return a #{klass} instance" do
+      Foo.new.send(meth).must_be_kind_of(klass)
     end
   end
-  def update(*args)
-    checkout do |conn|
-      conn.execute(update_sql(*args))
+end
+
+## Understanding the many levels of testing
+
+class Foo
+  singleton_class.alias_method(:build, :new)
+
+  def build_foo(arg)
+    Foo.build(arg)
+  end
+end
+
+# --
+
+describe Foo do
+  it "#build_foo should call Foo.build" do
+    mock = Minitest::Mock.new
+    mock.expect :call, :foo, [1]
+
+    Foo.stub :build, mock do
+      _(Foo.new.build_foo(1)).must_equal :foo
     end
+
+    mock.verify
   end
-  def delete(*args)
-    checkout do |conn|
-      conn.execute(delete_sql(*args))
-    end
-  end
-end
-
-# --
-
-class Database
-  private def execute
-    checkout do |conn|
-      conn.execute(yield)
-    end
-  end
-
-# --
-
-  def insert(*args)
-    execute{insert_sql(*args)}
-  end
-
-  def update(*args)
-    execute{update_sql(*args)}
-  end
-
-  def delete(*args)
-    execute{delete_sql(*args)}
-  end
-end
-
-# --
-
-class Database
-  private def execute(sql)
-    checkout do |conn|
-      conn.execute(sql)
-    end
-  end
-
-# --
-
-  def insert(*args)
-    execute(insert_sql(*args))
-  end
-
-  def update(*args)
-    execute(update_sql(*args))
-  end
-
-  def delete(*args)
-    execute(delete_sql(*args))
-  end
-end
-
-# --
-
-class Database
-  private def execute(sql)
-    conn = checkout_connection
-    conn.execute(sql)
-  ensure
-    checkin_connection(conn) if conn
-  end
-end
-
-# --
-
-class Client
-  def initialize(first_name, last_name, street, city,
-                 state, zip, phone)
-    @first_name = first_name
-    @last_name = last_name
-    @street = street
-    @city = city
-    @state = state
-    @zip = zip
-    @phone = phone
-  end
-
-# --
-
-  def update_phone(phone)
-    @phone = phone
-  end
-
-  def update_address(street, city, state, zip)
-    @street = street
-    @city = city
-    @state = state
-    @zip = zip
-  end
-
-# --
-
-  def format_address_label
-    <<~END
-    #{@first_name} #{@last_name}
-    #{@street}
-    #{@city}, #{@state} #{@zip}
-    END
-  end
-end
-
-# --
-
-class Shipment
-  def initialize(contents, ship_date, ship_to,
-                 street, city, state, zip)
-    @contents = contents
-    @ship_date = ship_date
-    @ship_to = ship_to
-    @street = street
-    @city = city
-    @state = state
-    @zip = zip
-  end
-
-# --
-
-  def format_address_label
-    <<~END
-    #{@ship_to}
-    #{@street}
-    #{@city}, #{@state} #{@zip}
-    END
-  end
-end
-
-# --
-
-class Address
-  def initialize(street, city, state, zip)
-    @street = street
-    @city = city
-    @state = state
-    @zip = zip
-  end
-end
-
-# --
-
-class Client
-  def initialize(first_name, last_name, street, city,
-                 state, zip, phone)
-    @first_name = first_name
-    @last_name = last_name
-    @address = Address.new(street, city, state, zip)
-    @phone = phone
-  end
-end
-
-# --
-
-class Shipment
-  def initialize(contents, ship_date, ship_to,
-                 street, city, state, zip)
-    @contents = contents
-    @ship_date = ship_date
-    @ship_to = ship_to
-    @address = Address.new(street, city, state, zip)
-  end
-end
-
-# --
-
-class Client
-  def initialize(first_name, last_name, address, phone)
-    @first_name = first_name
-    @last_name = last_name
-    @address = address
-    @phone = phone
-  end
-end
-class Shipment
-  def initialize(contents, ship_date, ship_to, address)
-    @contents = contents
-    @ship_date = ship_date
-    @ship_to = ship_to
-    @address = address
-  end
-end
-
-# --
-
-class Client
-  def update_address(street, city, state, zip)
-    @address = Address.new(street, city, state, zip)
-  end
-end
-
-# --
-
-class Client
-  def update_address(address)
-    @address = address
-  end
-end
-
-# --
-
-class Address
-  def format_label
-    <<~END
-    #{@street}
-    #{@city}, #{@state} #{@zip}
-    END
-  end
-end
-
-# --
-
-class Client
-  def format_address_label
-    <<~END
-    #{@first_name} #{@last_name}
-    #{@address.format_label}
-    END
-  end
-end
-class Shipment
-  def format_address_label
-    <<~END
-    #{@ship_to}
-    #{@address.format_label}
-    END
-  end
-end
-
-# --
-
-class Address
-  def format_label(addressee)
-    <<~END
-    #{addressee}
-    #{@street}
-    #{@city}, #{@state} #{@zip}
-    END
-  end
-end
-
-# --
-
-class Client
-  def format_address_label
-    @address.format_label("#{@first_name} #{@last_name}")
-  end
-end
-class Shipment
-  def format_address_label
-    @address.format_label(@ship_to)
-  end
-end
-
-## Removing features properly
-
-def method_to_be_removed
-  warn("#{__callee__} is deprecated",
-       uplevel: 1, category: :deprecated)
-  # ...
-end
-
-# --
-
-def method_to_be_removed
-  warn("#{__callee__} is deprecated",
-       uplevel: 1, category: :deprecated)
-  _method_to_be_removed
-end
-
-private def _method_to_be_removed
-  # ...
-end
-
-# --
-
-def arg_to_be_removed(arg)
-  # ...
-end
-
-# --
-
-def arg_to_be_removed(arg=(arg_not_given=true; nil))
-  unless arg_not_given
-    warn("Passing deprecated argument to #{__callee__}",
-         uplevel: 1, category: :deprecated)
-  end
-
-  # ...
-end
-
-# --
-
-def arg_to_be_removed(arg, arg2=(arg2_not_given=true; nil))
-  if arg2_not_given
-    warn("Should now pass 2 arguments to #{__callee__}",
-         uplevel: 1, category: :deprecated)
-  end
-
-  # ...
 end
 
 # --
 
 class Foo
-  BAR = 1
-  deprecate_constant :BAR
+  def build_foo(arg)
+    Foo.new(arg)
+  end
 end
 
-# --
+## Realizing that 100% coverage means nothing
 
 class Foo
-  BAR = 1
-  BAR_ = BAR
-  private_constant :BAR_
-  deprecate_constant :BAR
+  attr_accessor :bar
+
+  def branch(v)
+    v > 1 ? bar : baz
+  end
+
+  def baz; raise; end
 end
 
 # --
 
-class Object
-  Foo_ = Foo
-  private_constant :Foo_
-  deprecate_constant :Foo
+describe Foo do
+  it "#branch should return the value of bar" do
+    foo = Foo.new
+    foo.bar = 3
+    (foo.branch(2)).must_equal 3
+  end
+end
+
+# --
+
+describe Foo do
+  it "#branch should return the value of bar" do
+    Foo.new.branch(0) rescue nil
+    Foo.new.branch(2) rescue nil
+  end
 end

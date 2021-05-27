@@ -1,260 +1,395 @@
-### Designing Useful Domain Specific Languages
+### Metaprogramming and When to Use It
 
-## Designing your domain specific language
+## Learning the pros and cons of abstraction
 
-RSpec.configure do |c|
-  c.drb = true
-  c.drb_port = 24601
-
-  c.around do |spec|
-    DB.transaction(rollback: :always, &spec)
+class A
+  def b
+    nil
   end
 end
 
 # --
 
-RSpec::Core::DRbRunner.initialize(port: 24601)
-
-RSpec::Core::Hooks.register(:prepend, :around) do |spec|
-  DB.transaction(rollback: :always, &spec)
+def_class = ->(sym, method_hash) do
+  c = Object.const_set(sym, Class.new)
+  method_hash.each do |meth, val|
+    c.define_method(meth){val}
+  end
 end
+
+def_class.call(:A, b: nil)
 
 # --
 
-module RSpec
-  self.drb = true
-  self.drb_port = 24601
-
-  around do |spec|
-    DB.transaction(rollback: :always, &spec)
+class MetaStruct
+  def self.method_missing(meth, arg=nil, &block)
+    block ||= proc{arg}
+    define_method(meth, &block)
   end
 end
 
 # --
 
-module RSpec
-  drb = true
-  drb_port = 24601
+class A < MetaStruct
+  b
+  foo 1
+  bar{3.times.map{foo}}
 end
 
-# --
+A.new.b
+# => nil
 
-module RSpec
-  set_drb true
-  set_drb_port 24601
-end
-
-# --
-
-module RSpec
-  drb true       # Set the value
-  drb_port 24601 # Set the value
-end
-RSpec.drb
-# => true
-Rspec.drb_port
-# => 24601
+A.new.bar
+# => [1, 1, 1]
 
 # --
 
-Foo.process_bars(
-  [:bar1, :baz2, 3, {quux: 1}],
-  [:bar2, :baz4, 5],
-  # ...
-  skip_check: ->(bar){bar.number == 5},
-  generate_names: true
-)
-
-# --
-
-bar1 = Bar.new(:bar1, :baz2, 3, quux: 1)
-bar2 = Bar.new(:bar2, :baz4, 5)
-
-command = ProcessBarCommand.new
-command.add_bar(bar1)
-command.add_bar(bar2)
-# ...
-command.skip_check{|bar| bar.number == 5}
-command.generate_names = true
-
-Foo.process_bars(command)
-
-# --
-
-Foo.process_bars do |c|
-  c.bar(:bar1, :baz2, 3, quux: 1)
-  c.bar(:bar2, :baz4, 5)
-  # ...
-  c.skip_check{|bar| bar.number == 5}
-  c.generate_names = true
-end
-
-# --
-
-command = ProcessBarCommand.new do |c|
-  c.bar(:bar1, :baz2, 3, quux: 1)
-  c.bar(:bar2, :baz4, 5)
-  # ...
-  c.skip_check{|bar| bar.number == 5}
-  c.generate_names = true
-end
-
-Foo.process_bars(command)
-
-# --
-
-DB[:table].where(Sequel[:column] > 11)
-# generates SQL: SELECT * FROM table WHERE (column > 11)
-
-# --
-
-DB[:table].where{column > 11}
-
-# --
-
-@some_var = 10
-DB[:table].where{column > @some_var}
-
-# --
-
-@some_var = 10
-DB[:table].where{|o| o.column > @some_var}
-
-# --
-
-require 'minitest/autorun'
-
-describe Class do
-  before do
-    # setup code
+module Memomer
+  def self.extended(klass)
+    mod = Module.new
+    klass.prepend(mod)
+    klass.instance_variable_set(:@memomer_mod, mod)
   end
 
-  after do
-    # teardown code
-  end
+# --
 
-  it "should allow creating classes via .new" do
-    Class.new.must_be_kind_of Class
+  def memoize(arg)
+    iv = :"@memomer_#{arg}"
+    @memomer_mod.define_method(arg) do
+      if instance_variable_defined?(iv)
+        return instance_variable_get(iv)
+      end
+      v = super()
+      instance_variable_set(iv, v)
+      v
+    end
   end
 end
 
 # --
 
-require 'sinatra'
-
-get "/" do
-  "Index page"
-end
-
-not_found do
- "File Not Found"
-end
-
-## Implementing your domain specific language
-
-def RSpec.configure
-  yield RSpec::Core::Configuration.new
+class A < MetaStruct
+  extend Memomer
+  memoize :bar
 end
 
 # --
 
-class ProcessBarDSL
-  def initialize(command)
-    @command = command
+a = A.new
+a.bar
+# => [1, 1, 1]
+
+A.foo 2
+
+A.new.bar
+# => [2, 2, 2]
+
+a.bar
+# => [1, 1, 1]
+
+## Eliminating redundancy
+
+class Foo
+  def bar
+    @bar
   end
 
-  def bar(...)
-    @command.add_bar(...)
+  def bar=(v)
+    @bar = v
   end
 
-  def method_missing(...)
-    @command.send(...)
+  def baz
+    @baz
+  end
+
+  def baz=(v)
+    @baz = v
   end
 end
 
 # --
 
-def Foo.process_bars
-  command = ProcessBarCommand.new
-  yield ProcessBarDSL.new(command)
-
-  handle_bar_processing(command)
+class Foo
+  attr_accessor :bar, :baz
 end
 
 # --
 
-def Foo.process_bars(command=nil)
-  unless command
-    command = ProcessBarCommand.new
-    yield ProcessBarDSL.new(command)
+class FooStruct
+  def initialize(**kwargs)
+    @values = kwargs
   end
 
-  handle_bar_processing(command)
+# --
+
+  def bar
+    @values[:bar]
+  end
+
+  def bar=(v)
+    @values[:bar] = v
+  end
+
+  def baz
+    @values[:baz]
+  end
+
+  def baz=(v)
+    @values[:baz] = v
+  end
 end
 
 # --
 
-def where(&block)
-  cond = if block.arity == 1
-    yield Sequel::VIRTUAL_ROW
-  else
-    Sequel::VIRTUAL_ROW.instance_exec(&block)
-  end
+class FooStruct
+  %i[bar baz].each do |field|
+    define_method(field) do
+      @values[field]
+    end
 
-  add_where(cond)
+    define_method(:"#{field}=") do |v|
+      @values[field] = v
+    end
+  end
 end
 
 # --
 
-Sequel::VIRTUAL_ROW = Class.new(BasicObject) do
-  def method_missing(meth)
-    Sequel::SQL::Identifier.new(meth)
-  end
-end.new
+foo = FooStruct.new
+foo.bar = 1
+foo.baz = 2
+
+foo.bar
+# => 1
+
+foo.bar
+# => 2
 
 # --
 
-module Kernel
-  def describe(name, *, &block)
-    klass = Class.new(Minitest::Spec)
-    klass.name = name
+module HashAccessor
+  def hash_accessor(iv, *fields)
+    fields.each do |field|
+      define_method(field) do
+        instance_variable_get(iv)[field]
+      end
+
+      define_method(:"#{field}=") do |v|
+        instance_variable_get(iv)[field] = v
+      end
+    end
+  end
+end
+
+# --
+
+class FooStruct
+  extend HashAccessor
+  hash_accessor :@values, :bar, :baz
+end
+
+# --
+
+foo = FooStruct.new
+foo.bar = 1
+foo.baz = 2
+
+foo.bar
+# => 1
+
+foo.baz
+# => 2
+
+# --
+
+class Bar
+  @options = {:foo=>1, :baz=>2}
+end
+
+# --
+
+class Bar
+  extend HashAccessor
+  hash_accessor :@options, :foo, :baz
+end
+
+Bar.foo
+# NoMethodError
+
+# --
+
+class Bar
+  singleton_class.extend HashAccessor
+  singleton_class.hash_accessor :@options, :foo, :baz
+end
+
+# --
+
+Bar.foo = 1
+Bar.baz = 2
+
+Bar.foo
+# => 1
+
+Bar.baz
+# => 2
+
+# --
+
+Bar.singleton_class.extend HashAccessor
+
+# --
+
+Bar.singleton_class.singleton_class.include HashAccessor
+
+## Understanding different ways of metaprogramming methods
+
+Class.new do
+  # class-level block metaprogramming
+end
+
+Module.new do
+  # module-level block metaprogramming
+end
+
+define_singleton_method(:method) do
+  # singleton-method defining block metaprogramming
+end
+
+# --
+
+module Rusty
+  def self.struct(&block)
+    klass = Class.new
+    klass.extend(self)
     klass.class_eval(&block)
+    klass
+  end
+
+  def fn(meth, &block)
+    define_method(meth, &block)
+  end
+
+  def vl(meth, value)
+    define_method(meth){value}
+  end
+end
+
+# --
+
+Baz = Rusty.struct do
+  fn :rand do
+    Time.now.usec/1000000.0
+  end
+
+  vl :class_name, :Baz
+end
+
+# --
+
+Baz.new.rand
+# some float between 0.0 and 1.0
+
+Baz.new.class_name
+# => :Baz
+
+# --
+
+module Rusty
+  def fn(meth, code)
+    self << "def #{meth}; #{code}; end;"
+  end
+
+  alias vl fn
+
+# --
+
+  def self.struct(name, &block)
+    meths = []
+    meths.extend(self)
+    meths.instance_eval(&block)
+    klass = eval(<<-END)
+      class ::#{name}
+        #{meths.join}
+        self
+      end
+    END
     klass
   end
 end
 
 # --
 
-class Minitest::Spec
-  def self.before(&block)
-    define_method(:setup, &block)
-  end
-
-  def self.after(&block)
-    define_method(:teardown, &block)
-  end
+Rusty.struct(:Baz) do
+  fn :rand, "Time.now.usec/1000000.0"
+  vl :class_name, ":Baz"
 end
 
 # --
 
-class Minitest::Spec
-  def self.it(description, &b)
-    @num_specs ||= 0
-    @num_specs += 1
-    define_method("test_#{@num_specs}_#{description}", &b)
-  end
-end
+Baz.new.rand
+# some float between 0.0 and 1.0
+
+Baz.new.class_name
+# => :Baz
 
 # --
 
-module Sinatra::Delegator
-  meths = %i[get not_found] # ...
+Baz.class_eval "def #{name}; :foo end"
 
-  meths.each do |meth|
-    define_method(meth) do |*args, &block|
-      Sinatra::Application.send(meth, *args, &block)
+# --
+
+if /\A[A-Za-z_][A-Za-z0-9_]*\z/.match?(name)
+  Baz.class_eval "def #{name}; :foo end"
+else
+  Baz.define_method(name){:foo}
+end
+
+## Using method_missing judiciously
+
+words{this is a list of words}
+# => [:this, :is, :a, :list, :of, :words]
+
+# --
+
+def words(&block)
+  array = []
+
+  Class.new(BasicObject) do
+    define_method(:method_missing) do |meth, *|
+      array << meth
     end
+  end.new.instance_exec(&block)
+
+  array.reverse
+end
+
+# --
+
+class Struct50
+  def method_missing(meth, *)
+    @fields.fetch?(meth){super}
   end
 end
 
-extend Sinatra::Delegator
+# --
+
+class Struct50
+  valid_fields.each do |field|
+    define_method(field){@fields[field]}
+  end
+end
+
+# --
+
+class Struct50
+  def respond_to_missing(*)
+    true
+  end
+end
+
+# --
+
+Struct50.new.respond_to?(:valid_field)
+# false when using method_missing without
+# respond_to_missing?

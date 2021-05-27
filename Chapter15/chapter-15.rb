@@ -1,62 +1,34 @@
-### Web Application Design Principles
+### The Database Is Key
 
-## Deciding on a web framework
+## Treating the database as not just dumb storage
 
-require 'sinatra'
-get('/'){'Hello World'}
-
-# --
-
-require 'roda'
-Roda.route do |r|
-  r.root{'Hello World'}
-end
-
-## Designing URL paths
-
-class App < Roda
-  route do |r|
-    r.on 'forums', Integer do |forum_id|
-      forum = Forum[forum_id]
-      unless forum.allow_access?(current_user_id)
-        response.status = 403
-        r.halt
-      end
-
-      # ...
-    end
-  end
-end
+# SELECT first_name || ' ' || last_name FROM names;
 
 # --
 
-class App < Roda
-  route do |r|
-    r.on 'forums', Integer do |forum_id|
-      forum = Forum[forum_id]
-      unless forum.allow_access?(current_user_id)
-        response.status = 403
-        r.halt
-      end
-
-      # ...
-    end
+# SELECT first_name, last_name FROM names
 
 # --
 
-    r.on 'topics', Integer do |topic_id|
-      topic = Topic[topic]
-      unless topic.forum.allow_access?(current_user_id)
-        response.status = 403
-        r.halt
-      end
+"#{row[:first_name]} #{row[:last_name]}"
 
-      unless topic.allow_access?(current_user_id)
-        response.status = 403
-        r.halt
-      end
+## Choosing the model layer
 
-      # ...
-    end
-  end
-end
+tracks = 10
+Album.where("num_tracks > ?", tracks).to_a
+
+# --
+
+tracks = 10
+Album.where{num_tracks > tracks}.all
+
+## Handling database and model errors
+
+model_instance.save
+# => model or false
+
+# --
+
+model_instance.save
+# => model
+# or raise Sequel::ValidationFailed
