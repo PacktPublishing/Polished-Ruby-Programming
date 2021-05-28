@@ -1,3 +1,4 @@
+### 15
 ### The Database Is Key
 
 ## Treating the database as not just dumb storage
@@ -25,7 +26,7 @@ Album.where{num_tracks > tracks}.all
 ## Handling database and model errors
 
 model_instance.save
-# => model or false
+# => trueor false
 
 # --
 

@@ -1,6 +1,7 @@
+### 3
 ### Proper Variable Usage
 
-## Using Ruby's favorite variable type, the local variable
+## Using Ruby's favorite variable type - the local variable
 
 time_filter = TimeFilter.new(Time.local(2020, 10),
                              Time.local(2020, 11))
@@ -171,28 +172,28 @@ end
 
 # --
 
-local_variables = []
+defined?(a) # nil
 a = 1
-local_variables # [:a]
+defined?(a) # 'local-variable'
 module M
-  local_variables # []
+  defined?(a) # nil
   a = 2
-  local_variables # [:a]
+  defined?(a) # 'local-variable'
   class C
-    local_variables # []
+    defined?(a) # nil
     a = 3
-    local_variables # [:a]
+    defined?(a) # 'local-variable'
     def m
-      local_variables # []
+      defined?(a) # nil
       a = 4
-      local_variables # [:a]
+      defined?(a) # 'local-variable'
     end
 
 # --
 
     a # 3
   end
-   a # 2
+  a # 2
 end
 a # 1
 
@@ -203,17 +204,17 @@ a # 1
 
 # --
 
-local_variables = []
+defined?(a) # nil
 a = 1
-local_variables # [:a]
+defined?(a) # 'local-variable'
 M = Module.new do
-  local_variables # [:a]
+  defined?(a) # 'local-variable'
   a = 2
   self::C = Class.new do
-    local_variables # [:a]
+    defined?(a) # 'local-variable'
     a = 3
     define_method(:m) do
-      local_variables # [:a]
+      defined?(a) # 'local-variable'
       a = 4
     end
 
@@ -386,8 +387,8 @@ class Invoice
   end
 
   def total_tax
-    @tax_rate * @line_items.sum do
-      |item| item.price * item.quantity
+    @tax_rate * @line_items.sum do |item|
+      item.price * item.quantity
     end
   end
 end
@@ -433,7 +434,7 @@ end
 
   def total_tax
     return @cache[:total_tax] if @cache.key?(:total_tax)
-    @cache[:total_tax] ||= @tax_rate *
+    @cache[:total_tax] = @tax_rate *
       @line_items.sum do |item|
         item.price * item.quantity
       end
@@ -504,40 +505,8 @@ end
 
 # --
 
-def total_tax
-  if defined?(@total_tax_compiled)
-    @total_tax_compiled.call
-  else
-    @total_tax_calls = 0 unless defined?(@total_tax_calls)
-    if @total_tax_calls >= 10000
-      @total_tax_compiled = JITCompiler.new(:total_tax)
-    else
-      @total_tax_calls += 1
-    end
-    @tax_rate * @line_items.sum{|item| item.price * item.quantity}
-  end
-end
-
-# --
-
-def total_tax
-  @cache.fetch(:total_tax_optimized) do
-    @cache[:total_tax_calls] ||= 0
-    @cache[:total_tax_calls] += 1
-    if @cache[:total_tax_calls] >= 3
-      @cache[:total_tax_compiled] = OptimizedTax.new(self)
-    else
-      return @tax_rate * @line_items.sum do |item|
-        item.price * item.quantity
-      end
-    end
-  end.call
-end
-
-# --
-
 class Invoice
-  def shipping_cost
+  def line_item_taxes
     @line_items.map do |item|
       @tax_rate * item.price * item.quantity
     end
@@ -577,7 +546,7 @@ end
 # --
 
 class Invoice
-  def shipping_cost(location)
+  def line_item_taxes
     @line_items.map do |item|
       @tax_rate * item.price * item.quantity
     end
@@ -587,7 +556,7 @@ end
 # --
 
 class Invoice
-  def shipping_cost(location)
+  def line_item_taxes
     tax_rate = @tax_rate
     @line_items.map do |item|
       tax_rate * item.price * item.quantity
@@ -608,10 +577,13 @@ end
 
 @report = TransactionProcessingSystemReport.new
 
-## Understanding that constants are just a type of variable
+## Understanding how constants are just a type of variable
 
 A = 1
 A = 2
+
+# --
+
 # warning: already initialized constant A
 # warning: previous definition of A was here
 

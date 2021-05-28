@@ -1,3 +1,4 @@
+### 14
 ### Optimizing Your Library
 
 ## Profiling first, optimizing second
@@ -51,22 +52,6 @@ printer.print(STDOUT, {})
 
 # --
 
-# %self    name                       location
-# 25.26    Array#map
-# 16.84    Integer#times
-# 16.69    MultiplyProf#initialize    t.rb:4
-#  7.08    Rational#*
-#  6.05    Class#new
-#  5.79    MultiplyProf#rational      t.rb:15
-#  5.06    Rational#to_f
-#  4.34    Rational#to_i
-#  4.08    Rational#to_r
-#  3.94    MultiplyProf#integer       t.rb:9
-#  3.93    MultiplyProf#float         t.rb:12
-#  0.94    [global]#                  t.rb:2
-
-# --
-
 require 'benchmark'
 
 Benchmark.realtime do
@@ -94,13 +79,6 @@ end
 
 # --
 
-# Warming up --------------------------------------
-#   MultiplyProf    28.531k i/100ms
-# Calculating -------------------------------------
-#   MultiplyProf    284.095k (± 0.3%) i/s
-
-# --
-
 class MultiplyProf
   def initialize(vals)
     @i1, @i2 = vals.map(&:to_i)
@@ -122,35 +100,16 @@ end
 
 # --
 
-i = 0
-while i < 1000
-  mp = MultiplyProf.new([2.4r, 4.2r])
-  mp.integer
-  mp.float
-  mp.rational
-  i += 1
+result = RubyProf.profile do
+  i = 0
+  while i < 1000
+    mp = MultiplyProf.new([2.4r, 4.2r])
+    mp.integer
+    mp.float
+    mp.rational
+    i += 1
+  end
 end
-
-# --
-
-# %self    name                       location
-# 30.88    MultiplyProf#initialize    t.rb:4
-# 24.13    [global]#                  t.rb:22
-#  7.58    Class#new
-#  7.41    MultiplyProf#rational      t.rb:16
-#  6.29    Rational#to_f
-#  5.23    Rational#to_i
-#  5.12    Rational#to_r
-#  5.00    MultiplyProf#float         t.rb:13
-#  4.99    MultiplyProf#integer       t.rb:10
-#  3.37    Rational#*
-
-# --
-
-# Warming up --------------------------------------
-#   MultiplyProf    47.691k i/100ms
-# Calculating -------------------------------------
-#   MultiplyProf    480.311k (± 0.2%) i/s
 
 ## Understanding that no code is faster than no code
 
@@ -193,10 +152,6 @@ end
 
 # --
 
-# 363.114k i/s
-
-# --
-
 mp = MultiplyProf.new([2.4r, 4.2r])
 Benchmark.ips do |x|
   x.report("MultiplyProf") do
@@ -221,10 +176,6 @@ class MultiplyProf
     @rational = v1.to_r * v2.to_r
   end
 end
-
-# --
-
-# 5.022M i/s
 
 # --
 

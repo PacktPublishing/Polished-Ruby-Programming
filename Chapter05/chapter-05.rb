@@ -1,3 +1,4 @@
+### 5
 ### Handling Errors
 
 ## Handling errors with return values
@@ -157,7 +158,7 @@ class Authorizer
   def self.check(user, action)
     unless new(user, action).authorized?
       raise InvalidAuthorization,
-      "#{user.name} is not authorized to perform #(action)"
+      "#{user.name} is not authorized to perform #{action}"
     end
   end
 end
@@ -198,7 +199,7 @@ end
 
 # --
 
-Authorizer.check(current_user, :manage_users)
+code:Authorizer.check(current_user, :manage_users)
 show_manage_users_page
 
 # --
@@ -227,21 +228,18 @@ raise ArgumentError, "message", EMPTY_ARRAY
 
 # --
 
-exception = ArgumentError.new
-exception.message = "message"
+exception = ArgumentError.new("message")
 raise exception
 
 # --
 
-exception = ArgumentError.new
-exception.message = "message"
+exception = ArgumentError.new("message")
 exception.set_backtrace(EMPTY_ARRAY)
 raise exception
 
 # --
 
-exception = ArgumentError.new
-exception.message = "message"
+exception = ArgumentError.new("message")
 if LibraryModule.skip_exception_backtraces
   exception.set_backtrace(EMPTY_ARRAY)
 end
@@ -553,11 +551,11 @@ def baz(int)
     raise(TypeError,
           "int should be an Integer, is #{int.class}")
   end
-  int > 10
+  int + 10
 end
 
 # --
 
 def baz(int)
-  10 > int
+  10 + int
 end

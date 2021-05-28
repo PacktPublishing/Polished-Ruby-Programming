@@ -1,6 +1,7 @@
+### 10
 ### Designing Useful Domain Specific Languages
 
-## Designing your domain specific language
+## Designing your domain-specific language
 
 RSpec.configure do |c|
   c.drb = true
@@ -13,7 +14,7 @@ end
 
 # --
 
-RSpec::Core::DRbRunner.initialize(port: 24601)
+RSpec::Core::DRbRunner.new(port: 24601)
 
 RSpec::Core::Hooks.register(:prepend, :around) do |spec|
   DB.transaction(rollback: :always, &spec)
@@ -52,7 +53,7 @@ module RSpec
 end
 RSpec.drb
 # => true
-Rspec.drb_port
+RSpec.drb_port
 # => 24601
 
 # --
@@ -150,7 +151,7 @@ not_found do
  "File Not Found"
 end
 
-## Implementing your domain specific language
+## Implementing your domain-specific language
 
 def RSpec.configure
   yield RSpec::Core::Configuration.new

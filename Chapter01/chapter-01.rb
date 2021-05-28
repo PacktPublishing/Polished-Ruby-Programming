@@ -1,6 +1,7 @@
+### 1
 ### Getting the Most out of Core Classes
 
-## When to use core classes
+## Learning when to use core classes
 
 things = ["foo", "bar", "baz"]
 things.each do |thing|
@@ -9,7 +10,7 @@ end
 
 # --
 
-things = ThingList.new("foo", "bar", "baz")
+things = ThingList.new("foo", "bar", " baz")
 things.each do |thing|
   puts thing
 end
@@ -47,12 +48,9 @@ end
 
 "a".gsub!('b', '')
 # => nil
+[2, 4, 6].select!(&:even?)# => nil
 
-[].select!{}
-# => nil
-
-{}.reject!{}
-# => nil
+["a", "b", "c"].reject!(&:empty?)# => nil
 
 # --
 
@@ -85,15 +83,6 @@ end
 
   cache.fetch(:key){cache[:key] = some_expression}
 
-# --
-
-def nil.foo
-  1
-end
-
-NilClass.public_instance_methods.include?(:foo)
-# => true
-
 ## Different numeric types for different needs
 
 10.times do
@@ -110,7 +99,7 @@ end
 
 # --
 
-5 / 10r
+5 / 10r # or Rational(5, 10) or 5 / 10.to_r
 # => (1/2)
 
 7.0 / 3
@@ -188,17 +177,7 @@ v
 v.to_s('F')
 # => "1109.375"
 
-# --
-
-1.singleton_class
-# TypeError (can't define singleton)
-
-# --
-
-1r.singleton_class.class_eval{def meth; end}
-# FrozenError
-
-## How symbols differ from strings
+## Understanding how symbols differ from strings
 
 foo.add(bar)
 
@@ -235,7 +214,7 @@ def append2(value)
   value.gsub(/foo/, "bar")
 end
 
-## How best to use arrays, hashes, and sets
+## Learning how best to use arrays, hashes, and sets
 
 [[:foo, 1], [:bar, 3], [:baz, 7]].each do |sym, i|
   # ...
@@ -249,9 +228,17 @@ end
 
 # --
 
+album_infos = 100.times.flat_map do |i|
+  10.times.map do |j|
+  ["Album #{i}", j, "Track #{j}"]
+  end
+end
+
+# --
+
 album_artists = {}
 album_track_artists = {}
-album_infos.each do |album, track, artist|
+album_infos .each do |album, track, artist|
   (album_artists[album] ||= []) << artist
   (album_track_artists[[album, track]] ||= []) << artist
 end
@@ -291,9 +278,9 @@ end
 
 albums = {}
 album_infos.each do |album, track, artist|
-  album_array = albums[album] ||= [[]]
-  album_array[0] << artist
-  (album_array[track] ||= []) << artist
+   album_array = albums[album] ||= [[]]
+   album_array[0] << artist
+   (album_array[track] ||= []) << artist
 end
 albums.each_value do |array|
   array[0].uniq!
@@ -341,7 +328,7 @@ lookup = ->(artists) do
   album_artists & artists
 end
 
-## One of the underappreciated core classes, Struct
+## Working with Struct - one of the underappreciated core classes
 
 class Artist
   attr_accessor :name, :albums

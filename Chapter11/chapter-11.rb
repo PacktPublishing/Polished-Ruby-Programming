@@ -1,3 +1,4 @@
+### 11
 ### Testing to Ensure Your Code Works
 
 ## Understanding why testing is so critical in Ruby
@@ -51,7 +52,7 @@ END
 
 # --
 
-module WhichFaster
+class WhichFaster
   def faster_one(callable1, callable2)
     t1 = time{callable1.call}
     t2 = time{callable2.call}
@@ -112,15 +113,15 @@ which.faster_one
 
 describe Foo do
   it "should have bar return a Bar instance" do
-    Foo.new.bar.must_be_kind_of(Bar)
+    _(Foo.new.bar).must_be_kind_of(Bar)
   end
 
   it "should have baz return a Baz instance" do
-    Foo.new.baz.must_be_kind_of(Baz)
+    _(Foo.new.baz).must_be_kind_of(Baz)
   end
 
   it "should have quux return a Quux instance" do
-    Foo.new.quux.must_be_kind_of(Quux)
+    _(Foo.new.quux).must_be_kind_of(Quux)
   end
 end
 
@@ -128,7 +129,7 @@ end
 
 describe Foo do
   def method_must_return_kind_of(meth, instance)
-    Foo.new.send(meth).must_be_kind_of(instance)
+    _(Foo.new.send(meth)).must_be_kind_of(instance)
   end
 
 # --
@@ -151,7 +152,7 @@ end
 describe Foo do
   {bar: Bar, baz: Baz, quux: Quux}.each do |meth, klass|
     it "should have #{meth} return a #{klass} instance" do
-      Foo.new.send(meth).must_be_kind_of(klass)
+      _(Foo.new.send(meth)).must_be_kind_of(klass)
     end
   end
 end

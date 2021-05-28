@@ -1,3 +1,4 @@
+### 13
 ### Using Common Design Patterns
 
 ## Learning about many design patterns that are built into Ruby
@@ -121,7 +122,7 @@ end
 HashProxy.new(a: 1, b: 2, c: 3).size_squared
 # => 9
 
-# --
+## Handling cases where there can be only one
 
 require 'singleton'
 
@@ -583,7 +584,7 @@ class Adapter
       format_sqls
 
     sqls.each do |sql|
-      conn.execute(sql)
+      execute(sql)
     end
   end
 end

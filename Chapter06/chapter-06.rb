@@ -1,3 +1,4 @@
+### 6
 ### Formatting Code for Easy Reading
 
 ## Recognizing different perspectives to code formatting
@@ -58,7 +59,7 @@ if RUBY_VERSION >= '3.0'
   end
 end
 
-## Understanding that arbitrary limits usually result in worse code
+## Understanding the consequences of using arbitrary limits
 
 class XYZPoint
   def all_combinations(array)
@@ -88,7 +89,7 @@ class XYZPoint
 # --
 
   def all_combinations(array)
-    xys.each do |x, y|
+    each_xy do |x, y|
       zs.each do |z|
         array.each do |val|
           yield x, y, z, val
@@ -104,9 +105,7 @@ CSV.new(data,
         nil_value: "",
         strip: true,
         skip_lines: /foo/)
-
-# --
-
+# or
 CSV.new(data,
         col_sep: "\t",
         row_sep: "\0",
@@ -119,9 +118,7 @@ options.nil_value = ""
 options.strip = true
 options.skip_lines = true
 CSV.new(data, options)
-
-# --
-
+# or
 options = CSV::Options.new
 options.col_sep = "\t"
 options.row_sep = "\0"

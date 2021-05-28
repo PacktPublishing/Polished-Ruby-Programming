@@ -1,3 +1,4 @@
+### 9
 ### Metaprogramming and When to Use It
 
 ## Learning the pros and cons of abstraction
@@ -38,6 +39,9 @@ end
 
 A.new.b
 # => nil
+
+A.new.foo
+# => 1
 
 A.new.bar
 # => [1, 1, 1]
@@ -142,6 +146,7 @@ end
 # --
 
 class FooStruct
+
   %i[bar baz].each do |field|
     define_method(field) do
       @values[field]
@@ -162,7 +167,7 @@ foo.baz = 2
 foo.bar
 # => 1
 
-foo.bar
+foo.baz
 # => 2
 
 # --
@@ -352,6 +357,14 @@ words{this is a list of words}
 
 # --
 
+obj = BasicObject.new
+meth = Kernel.instance_method(:define_singleton_method)
+meth.bind_call(obj, :foo){:bar}
+obj.foo
+# => :bar
+
+# --
+
 def words(&block)
   array = []
 
@@ -368,7 +381,7 @@ end
 
 class Struct50
   def method_missing(meth, *)
-    @fields.fetch?(meth){super}
+    @fields.fetch(meth){super}
   end
 end
 
@@ -383,8 +396,8 @@ end
 # --
 
 class Struct50
-  def respond_to_missing(*)
-    true
+  def respond_to_missing?(meth, *)
+    @fields.include?(meth)
   end
 end
 
