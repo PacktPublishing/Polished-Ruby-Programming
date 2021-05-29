@@ -20,3 +20,6 @@ module M
   a # 2
 end
 a # 1
+
+M::C.new.m
+a # 1

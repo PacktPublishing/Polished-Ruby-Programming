@@ -17,3 +17,6 @@ M = Module.new do
    a # 3
 end
 a # 3
+
+M::C.new.m
+a # 4
