@@ -199,7 +199,7 @@ end
 
 # --
 
-code:Authorizer.check(current_user, :manage_users)
+Authorizer.check(current_user, :manage_users)
 show_manage_users_page
 
 # --

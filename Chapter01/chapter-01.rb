@@ -10,7 +10,7 @@ end
 
 # --
 
-things = ThingList.new("foo", "bar", " baz")
+things = ThingList.new("foo", "bar", "baz")
 things.each do |thing|
   puts thing
 end
@@ -230,7 +230,7 @@ end
 
 album_infos = 100.times.flat_map do |i|
   10.times.map do |j|
-  ["Album #{i}", j, "Track #{j}"]
+    ["Album #{i}", j, "Track #{j}"]
   end
 end
 
@@ -238,7 +238,7 @@ end
 
 album_artists = {}
 album_track_artists = {}
-album_infos .each do |album, track, artist|
+album_infos.each do |album, track, artist|
   (album_artists[album] ||= []) << artist
   (album_track_artists[[album, track]] ||= []) << artist
 end
@@ -278,9 +278,9 @@ end
 
 albums = {}
 album_infos.each do |album, track, artist|
-   album_array = albums[album] ||= [[]]
-   album_array[0] << artist
-   (album_array[track] ||= []) << artist
+  album_array = albums[album] ||= [[]]
+  album_array[0] << artist
+  (album_array[track] ||= []) << artist
 end
 albums.each_value do |array|
   array[0].uniq!

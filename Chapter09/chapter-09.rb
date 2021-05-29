@@ -146,7 +146,6 @@ end
 # --
 
 class FooStruct
-
   %i[bar baz].each do |field|
     define_method(field) do
       @values[field]

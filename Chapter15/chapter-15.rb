@@ -26,7 +26,7 @@ Album.where{num_tracks > tracks}.all
 ## Handling database and model errors
 
 model_instance.save
-# => trueor false
+# => true or false
 
 # --
 
