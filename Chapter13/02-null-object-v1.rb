@@ -21,3 +21,19 @@ class Employee
     END
   end
 end
+
+supervisor = Employee.new("Juan Manuel", "CEO",
+                          "246-011-0642", nil)
+subordinate = Employee.new("Aziz Karim", "CTO",
+                           "707-405-9260", supervisor)
+
+print subordinate.employee_info
+# Name: Aziz Karim
+# Position: CTO
+# Phone: 707-405-9260
+# Supervisor Name: Juan Manuel
+# Supervisor Position: CEO
+# Supervisor Phone: 246-011-0642
+
+print supervisor.employee_info
+# NoMethodError

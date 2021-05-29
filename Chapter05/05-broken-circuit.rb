@@ -21,3 +21,14 @@ class BrokenCircuit
     end
   end
 end
+
+RECOMMENDER_CIRCUIT = BrokenCircuit.new
+AD_CIRCUIT = BrokenCircuit.new
+
+@recommendations = RECOMMENDER_CIRCUIT.check do
+  recommender_service.call(timeout: 3)
+end
+@ads = AD_CIRCUIT.check do
+  ad_service.call(timeout: 3)
+end
+process_payment

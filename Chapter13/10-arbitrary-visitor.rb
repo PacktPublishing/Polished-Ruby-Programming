@@ -26,3 +26,14 @@ class ArbitraryVisitor
     obj.size
   end
 end
+
+av = ArbitraryVisitor.new
+
+av.visit(4)
+# => 256
+
+av.visit("palindrome")
+# => "palindromeemordnilap"
+
+av.visit([:a, :b, :c])
+# => 3

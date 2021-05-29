@@ -142,6 +142,40 @@ csv2 = CSV.new(data2, **options)
 
 # --
 
+def a
+  b = 1 # b not used
+  2
+end
+
+# --
+
+def a
+  return
+  2 # not reachable
+end
+
+# --
+
+if a
+  if b
+    p 3
+end # misleading, appears to close "if a" instead of "if b"
+end
+
+# --
+
+def a
+  1 # unused literal value
+  2
+end
+
+# --
+
+a(b: 1, b: 2) # duplicate keyword argument 
+{c: 3, c: 4} # duplicate hash key
+
+# --
+
 def foo(arg)
   bar, baz = _foo_1(arg)
   val = _foo_2(bar)

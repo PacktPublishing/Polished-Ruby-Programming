@@ -17,3 +17,27 @@ module Memomer
     end
   end
 end
+
+class MetaStruct
+  def self.method_missing(meth, arg=nil, &block)
+    block ||= proc{arg}
+    define_method(meth, &block)
+  end
+end
+
+class A < MetaStruct
+  extend Memomer
+  memoize :bar
+end
+
+a = A.new
+a.bar
+# => [1, 1, 1]
+
+A.foo 2
+
+A.new.bar
+# => [2, 2, 2]
+
+a.bar
+# => [1, 1, 1]

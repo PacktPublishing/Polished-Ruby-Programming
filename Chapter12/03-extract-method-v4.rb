@@ -1,4 +1,11 @@
 class Database
+  private def checkout
+    conn = checkout_connection
+    yield conn
+  ensure
+    checkin_connection(conn) if conn
+  end
+
   private def execute(sql)
     checkout do |conn|
       conn.execute(sql)
