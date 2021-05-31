@@ -11,7 +11,7 @@ class App < Roda
     end
 
     r.on 'topics', Integer do |topic_id|
-      topic = Topic[topic]
+      topic = Topic[topic_id]
       unless topic.forum.allow_access?(current_user_id)
         response.status = 403
         r.halt
