@@ -1,3 +1,4 @@
+### 2
 ### Designing Useful Custom Classes
 
 ## Learning when to create a custom class
@@ -190,7 +191,7 @@ class Max
   end
 
   def over?(n)
-    n > @max
+    @max > 5
   end
 end
 
@@ -198,7 +199,7 @@ end
 
 class MaxBy < Max
   def over?(n, by)
-    n > @max + by
+    @max > n + by
   end
 end
 
@@ -206,7 +207,7 @@ end
 
 class MaxBy < Max
   def over?(n, by: 0)
-    n > @max + by
+    @max > n + by
   end
 end
 

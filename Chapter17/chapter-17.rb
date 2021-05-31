@@ -1,3 +1,4 @@
+### 17
 ### Robust Web Application Security
 
 ## Trusting input never
@@ -71,7 +72,7 @@ r.post do
   r.redirect
 end
 
-## Performing access control at highest level possible
+## Performing access control at the highest level possible
 
 class FooController < ApplicationController
   before_action :check_access
@@ -126,6 +127,16 @@ end
 
 before '/foos/(create|bazs)' do
   check_access
+end
+
+# --
+
+before '/foos/:x' do |segment|
+  case segment
+  when 'index', 'bars'
+  else
+   check_access
+  end
 end
 
 # --
@@ -199,7 +210,7 @@ class Bar
   end
 end
 
-## Approaching high security environments
+## Approaching high-security environments
 
 worker_exec true
 
