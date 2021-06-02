@@ -1,3 +1,4 @@
+### 4
 ### Methods and Their Arguments
 
 ## Understanding that there are no class methods, only instance methods
@@ -95,7 +96,7 @@ class Foo
   end
 end
 
-## Naming methods
+## Importance of naming methods
 
 DB.from(Sequel.identifier(:a).qualify(:b)).
   first(:id=>1)
@@ -354,7 +355,7 @@ end
 # --
 
 mv("foo", "dir")
-mv("foo", "baz", "baz", "dir")
+mv("foo", "bar", "baz", "dir")
 
 # --
 
@@ -702,6 +703,17 @@ end
 
 # --
 
+def foo(bar, &block)
+  case block.arity
+  when 2, -1, -2
+    yield(bar, @baz)
+  else
+    yield(bar, @baz, @initial || 0)
+  end
+end
+
+# --
+
 def listen
   server.start_listening
   server.receive_notification
@@ -717,7 +729,7 @@ notification = listen
 
 def listen
   server.start_listening
-  yield
+  yield if block_given?
   server.receive_notification
 ensure
   server.stop_listening
@@ -747,7 +759,7 @@ end
 
 def listen(callback: nil)
   server.start_listening
-  yield
+  yield if block_given?
   if callback
     while notification = server.receive_notification
       callback.(notification)
@@ -807,7 +819,7 @@ m.foo
 # --
 
 class MethodVis
-  def method_missing(sym, ...)
+  private def method_missing(sym, ...)
     if sym == :foo
       warn("foo is a protected method, stop calling it!",
            uplevel: 1)
@@ -836,8 +848,8 @@ ConstantVis::PRIVATE
 class ConstantVis
   def self.const_missing(const)
     if const == :PRIVATE
-      warn("foo is a protected method, stop calling it!",
-           uplevel: 1)
+      warn("ConstantVis::PRIVATE is a private constant, " \
+           "stop accessing it!", uplevel: 1)
       return PRIVATE
     end
     super
@@ -845,7 +857,8 @@ class ConstantVis
 end
 
 ConstantVis::PRIVATE
-# ConstantVis::CONSTANT is private, stop accessing it!
+# ConstantVis::PRIVATE is a private constant,
+# stop accessing it!
 # => 1
 
 # --
@@ -899,7 +912,7 @@ def foo(*args, &block)
   warn("foo is being renamed to bar", uplevel: 1)
   bar(*args, &block)
 end
-ruby2_keywords(:foo) if respond_to?(:ruby2_keywords, false)
+ruby2_keywords(:foo) if respond_to?(:ruby2_keywords, true)
 
 # --
 
@@ -933,7 +946,7 @@ class A
   def foo(*args, &block)
     b.foo(*args, &block)
   end
-  if respond_to?(:ruby2_keywords, false)
+  if respond_to?(:ruby2_keywords, true)
     ruby2_keywords(:foo)
   end
 end
