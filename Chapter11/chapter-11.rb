@@ -66,7 +66,6 @@ class WhichFaster
   private def clock_time
     Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
-  extend self
 end
 
 # --
