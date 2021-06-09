@@ -169,8 +169,8 @@ def baz(baz: nil)
 end
 
 def foo(bar: nil, baz: nil)
-  bar(bar: nil)
-  baz(baz: nil)
+  bar(bar: bar)
+  baz(baz: baz)
 end
 
 def bar(bar: nil)
