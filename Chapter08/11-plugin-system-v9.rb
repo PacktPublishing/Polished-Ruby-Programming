@@ -164,7 +164,7 @@ module Libry::Plugins::AutoCurse
 end
 
 book = Libry::Book.new('Polished Ruby Programming')
-Libry.plugin(Libry::Plugins::Tracking) do |obj|
+Libry.plugin(:tracking) do |obj|
   if obj.is_a?(Libry::User)
     obj.checkout(book)
   end

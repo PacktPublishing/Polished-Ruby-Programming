@@ -362,13 +362,9 @@ user = Libry::User.new 1
 book = Libry::Book.new 'a'
 user.checkout(book)
 
-book = Libry::Book.new 'b'
 Libry.plugin(Libry::Plugins::AutoCurse)
 
 user.curse!
-user.checkout(book)
-user.books.size
-# => 1
 
 # --
 
@@ -482,13 +478,9 @@ user = libry::User.new 1
 book = libry::Book.new 'a'
 user.checkout(book)
 
-book = libry::Book.new 'b'
 libry.plugin(:auto_curse)
 
 user.curse!
-user.checkout(book)
-user.books.size
-# => 1
 
 # --
 
@@ -551,7 +543,7 @@ end
 # --
 
 book = Libry::Book.new('Polished Ruby Programming')
-Libry.plugin(Libry::Plugins::Tracking) do |obj|
+Libry.plugin(:tracking) do |obj|
   if obj.is_a?(Libry::User)
     obj.checkout(book)
   end

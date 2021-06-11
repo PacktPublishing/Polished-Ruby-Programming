@@ -156,13 +156,9 @@ user = libry::User.new 1
 book = libry::Book.new 'a'
 user.checkout(book)
 
-book = libry::Book.new 'b'
 libry.plugin(:auto_curse)
 
 user.curse!
-user.checkout(book)
-user.books.size
-# => 1
 
 user = Libry::User.new 1
 user.respond_to?(:curse!)
