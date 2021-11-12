@@ -4,7 +4,7 @@ class Max
   end
 
   def over?(n)
-    @max > n
+    @max < n
   end
 end
 
