@@ -10,13 +10,13 @@ end
 
 class MaxBy < Max
   def over?(n, by)
-    @max > n + by
+    @max + by < n
   end
 end
 
 class MaxBy < Max
   def over?(n, by: 0)
-    @max > n + by
+    @max + by < n
   end
 end
 
