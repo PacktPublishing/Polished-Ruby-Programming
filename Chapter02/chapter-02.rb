@@ -191,7 +191,7 @@ class Max
   end
 
   def over?(n)
-    @max > n
+    @max < n
   end
 end
 
@@ -199,7 +199,7 @@ end
 
 class MaxBy < Max
   def over?(n, by)
-    @max > n + by
+    @max + by < n
   end
 end
 
@@ -207,7 +207,7 @@ end
 
 class MaxBy < Max
   def over?(n, by: 0)
-    @max > n + by
+    @max + by < n
   end
 end
 
