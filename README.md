@@ -45,6 +45,12 @@ With the following software and hardware list you can run all code files present
 | -------- | ------------------------------------ | ----------------------------------- |
 | 1-17 | Ruby 3.0 | Any OS that runs Ruby |
 
+### Errata
+
+* Page 34: The sentence "If the method starts with the double underscore and is not already defined, someone is trying to override the aliased methods, so you can overwrite the aliased method by aliasing the original method again:" must be read as "If the method that was added starts with the double underscore, and the related method without the double underscore is already defined, someone is trying to override the aliased methods, so you can overwrite the aliased method by aliasing the original method again:" 
+
+* Page 34: The sentence "If the method doesn't start with the double underscore and is already defined, you can fix the issue by aliasing the aliased method back to the original method:" can also be read as "If the method that was added doesn't start with the double underscore, and the related method with the double underscore is already defined, you can fix the issue by aliasing the aliased method back to the original method:"
+
 ### Related products
 * Becoming an Agile Software Architect [[Packt]](https://www.packtpub.com/product/becoming-an-agile-software-architect/9781800563841?utm_source=github&utm_medium=repository&utm_campaign=9781800563841) [[Amazon]](https://www.amazon.com/dp/1800563841)
 
