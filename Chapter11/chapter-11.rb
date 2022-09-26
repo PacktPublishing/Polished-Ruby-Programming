@@ -127,8 +127,8 @@ end
 # --
 
 describe Foo do
-  def method_must_return_kind_of(meth, instance)
-    _(Foo.new.send(meth)).must_be_kind_of(instance)
+  def method_must_return_kind_of(meth, klass)
+    _(Foo.new.send(meth)).must_be_kind_of(klass)
   end
 
 # --
