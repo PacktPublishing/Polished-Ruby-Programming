@@ -59,3 +59,7 @@ With the following software and hardware list you can run all code files present
 ## Get to Know the Author
 **Jeremy Evans**
 is a Ruby committer who focuses on fixing bugs in Ruby, as well as improving the implementation of Ruby. He is the maintainer of many popular Ruby libraries, including the fastest web framework (Roda) and fastest database library (Sequel). His libraries are known not just for their performance, but also for their code quality, understandability, documentation, and how quickly any bugs found are fixed. For his contributions to Ruby and the Ruby community, he has received multiple awards, such as receiving the prestigious RubyPrize in 2020 and being chosen as a Ruby Hero in 2015. He has given presentations at over 20 Ruby conferences. In addition to working on Ruby, he is also a committer for the OpenBSD operating system.
+### Download a free PDF
+
+ <i>If you have already purchased a print or Kindle version of this book, you can get a DRM-free PDF version at no cost.<br>Simply click on the link to claim your free PDF.</i>
+<p align="center"> <a href="https://packt.link/free-ebook/9781801072724">https://packt.link/free-ebook/9781801072724 </a> </p>
